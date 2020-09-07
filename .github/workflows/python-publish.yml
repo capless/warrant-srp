@@ -4,26 +4,28 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [created]
+  push:
 
 jobs:
   deploy:
-
-    runs-on: capless/capless-docker:2
+    runs-on: ubuntu-20.04
+    container: 
+      image: capless/capless-docker:2
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+    - name: Poetry Install
+      run: |
+        poetry update
+        poetry install --no-dev
     - name: Run tests
       env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         COGNITO_CLIENT_SECRET: ${{ secrets.COGNITO_CLIENT_SECRET }}
-        COGNITO_APP_WITH_SECRET_ID: ${{ secrets.COGNITO_APP_WITH_SECRET_ID }}
+        COGNITO_APP_ID: ${{ secrets.COGNITO_APP_ID }}
         COGNITO_USER_POOL_ID: ${{ secrets.COGNITO_USER_POOL_ID }}
         COGNITO_TEST_USERNAME: ${{ secrets.COGNITO_TEST_USERNAME }}
         COGNITO_TEST_PASSWORD: ${{ secrets.COGNITO_TEST_PASSWORD }}
-      run: |
-        poetry python -m unittests
+      run: poetry run python -m unittest

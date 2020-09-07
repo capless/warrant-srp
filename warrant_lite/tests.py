@@ -10,7 +10,7 @@ class WarrantLiteTestCase(unittest.TestCase):
     def setUp(self):
         if env('USE_CLIENT_SECRET') == 'True':
             self.client_secret = env('COGNITO_CLIENT_SECRET')
-            self.app_id = env('COGNITO_APP_WITH_SECRET_ID')
+            self.app_id = env('COGNITO_APP_ID')
         else:
             self.app_id = env('COGNITO_APP_ID')
             self.client_secret = None
