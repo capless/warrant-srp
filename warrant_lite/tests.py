@@ -1,8 +1,9 @@
+import datetime
 import unittest
 
 from envs import env
 
-from warrant_lite import WarrantLite, TokenVerificationException
+from warrant_lite import WarrantLite, TokenVerificationException, timestamp_string
 
 
 class WarrantLiteTestCase(unittest.TestCase):
@@ -39,6 +40,34 @@ class WarrantLiteTestCase(unittest.TestCase):
         self.assertTrue('AccessToken' in tokens['AuthenticationResult'])
         self.assertTrue('RefreshToken' in tokens['AuthenticationResult'])
 
+class TimestampStringTest(unittest.TestCase):
+
+    def test_when_no_padding_is_necessary_should_return(self):
+        date = datetime.datetime(2020, 10, 28, hour=16, minute=36,
+                                      second=17, microsecond=14,
+                                      tzinfo=datetime.timezone.utc)
+
+        actual = timestamp_string(date)
+
+        self.assertEqual("Wed Oct 28 16:36:17 UTC 2020", actual)
+
+    def test_should_pad_timestamp(self):
+        date = datetime.datetime(2020, 10, 28, hour=1, minute=2,
+                                      second=3, microsecond=4,
+                                      tzinfo=datetime.timezone.utc)
+
+        actual = timestamp_string(date)
+
+        self.assertEqual("Wed Oct 28 01:02:03 UTC 2020", actual)
+
+    def test_should_not_pad_day(self):
+        date = datetime.datetime(2020, 10, 2, hour=1, minute=2,
+                                      second=3, microsecond=4,
+                                      tzinfo=datetime.timezone.utc)
+
+        actual = timestamp_string(date)
+
+        self.assertEqual("Fri Oct 2 01:02:03 UTC 2020", actual)
 
 if __name__ == '__main__':
     unittest.main()

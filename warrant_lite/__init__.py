@@ -1,11 +1,8 @@
 import base64
 import binascii
-import contextlib
 import datetime
 import hashlib
 import hmac
-import locale
-import re
 
 import boto3
 import os
@@ -36,6 +33,8 @@ n_hex = 'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1' + '29024E088A67CC7402
 g_hex = '2'
 info_bits = bytearray('Caldera Derived Key', 'utf-8')
 
+week_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 def hash_sha256(buf):
     """AuthenticationHelper.hash"""
@@ -102,11 +101,20 @@ def calculate_u(big_a, big_b):
     return hex_to_long(u_hex_hash)
 
 
-@contextlib.contextmanager
-def temp_locale(new_locale):
-    original = locale.getlocale()
-    yield locale.setlocale(locale.LC_ALL, new_locale)
-    locale.setlocale(locale.LC_ALL, original)
+def timestamp_string(date):
+    """
+    Generate a timestamp string for the current time in the following format:
+    Fri Oct 2 01:02:03 UTC 2020
+    """
+    return "%s %s %d %02d:%02d:%02d UTC %d" % (
+        week_names[date.weekday()],
+        month_names[date.month-1],
+        date.day,
+        date.hour,
+        date.minute,
+        date.second,
+        date.year
+    )
 
 
 class WarrantLite(object):
@@ -197,16 +205,7 @@ class WarrantLite(object):
         salt_hex = challenge_parameters['SALT']
         srp_b_hex = challenge_parameters['SRP_B']
         secret_block_b64 = challenge_parameters['SECRET_BLOCK']
-        # re strips leading zero from a day number (required by AWS Cognito)
-        try:
-            with temp_locale(('en_US', 'utf-8')):
-                timestamp = re.sub(r" 0(\d) ", r" \1 ",
-                           datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y"))
-        except locale.Error:
-            # try windows locale format
-            with temp_locale(('English_United States', '1252')):
-                timestamp = re.sub(r" 0(\d) ", r" \1 ",
-                           datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y"))
+        timestamp = timestamp_string(datetime.datetime.utcnow())
         hkdf = self.get_password_authentication_key(user_id_for_srp,
                                                     self.password, hex_to_long(srp_b_hex), salt_hex)
         secret_block_bytes = base64.standard_b64decode(secret_block_b64)
