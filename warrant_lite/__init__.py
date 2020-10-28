@@ -109,17 +109,17 @@ def temp_locale(new_locale):
     locale.setlocale(locale.LC_ALL, original)
 
 
-def timestamp_string():
+def timestamp_string(date):
     # re strips leading zero from a day number (required by AWS Cognito)
     try:
         with temp_locale(('en_US', 'utf-8')):
             return re.sub(r" 0(\d) ", r" \1 ",
-                        datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y"))
+                        date.strftime("%a %b %d %H:%M:%S UTC %Y"))
     except locale.Error:
         # try windows locale format
         with temp_locale(('English_United States', '1252')):
             return re.sub(r" 0(\d) ", r" \1 ",
-                        datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y"))
+                        date.strftime("%a %b %d %H:%M:%S UTC %Y"))
 
 
 class WarrantLite(object):
@@ -210,7 +210,7 @@ class WarrantLite(object):
         salt_hex = challenge_parameters['SALT']
         srp_b_hex = challenge_parameters['SRP_B']
         secret_block_b64 = challenge_parameters['SECRET_BLOCK']
-        timestamp = timestamp_string()
+        timestamp = timestamp_string(datetime.datetime.utcnow())
         hkdf = self.get_password_authentication_key(user_id_for_srp,
                                                     self.password, hex_to_long(srp_b_hex), salt_hex)
         secret_block_bytes = base64.standard_b64decode(secret_block_b64)
