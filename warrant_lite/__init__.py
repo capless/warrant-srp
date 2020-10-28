@@ -1,11 +1,8 @@
 import base64
 import binascii
-import contextlib
 import datetime
 import hashlib
 import hmac
-import locale
-import re
 
 import boto3
 import os
@@ -102,13 +99,6 @@ def calculate_u(big_a, big_b):
     """
     u_hex_hash = hex_hash(pad_hex(big_a) + pad_hex(big_b))
     return hex_to_long(u_hex_hash)
-
-
-@contextlib.contextmanager
-def temp_locale(new_locale):
-    original = locale.getlocale()
-    yield locale.setlocale(locale.LC_ALL, new_locale)
-    locale.setlocale(locale.LC_ALL, original)
 
 
 def timestamp_string(date):
