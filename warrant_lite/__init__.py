@@ -36,6 +36,8 @@ n_hex = 'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1' + '29024E088A67CC7402
 g_hex = '2'
 info_bits = bytearray('Caldera Derived Key', 'utf-8')
 
+week_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 def hash_sha256(buf):
     """AuthenticationHelper.hash"""
@@ -110,16 +112,19 @@ def temp_locale(new_locale):
 
 
 def timestamp_string(date):
-    # re strips leading zero from a day number (required by AWS Cognito)
-    try:
-        with temp_locale(('en_US', 'utf-8')):
-            return re.sub(r" 0(\d) ", r" \1 ",
-                        date.strftime("%a %b %d %H:%M:%S UTC %Y"))
-    except locale.Error:
-        # try windows locale format
-        with temp_locale(('English_United States', '1252')):
-            return re.sub(r" 0(\d) ", r" \1 ",
-                        date.strftime("%a %b %d %H:%M:%S UTC %Y"))
+    """
+    Generate a timestamp string for the current time in the following format:
+    Fri Oct 2 01:02:03 UTC 2020
+    """
+    return "%s %s %d %02d:%02d:%02d UTC %d" % (
+        week_names[date.weekday()],
+        month_names[date.month-1],
+        date.day,
+        date.hour,
+        date.minute,
+        date.second,
+        date.year
+    )
 
 
 class WarrantLite(object):
